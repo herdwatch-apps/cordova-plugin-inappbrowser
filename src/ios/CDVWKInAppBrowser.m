@@ -77,7 +77,10 @@ static CDVWKInAppBrowser* instance = nil;
     }
     
     // Things are cleaned up in browserExit.
-    [self.inAppBrowserViewController close];
+    [self.inAppBrowserViewController closeWithCompletion:^{
+        CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+        [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+    }];
 }
 
 - (BOOL) isSystemUrl:(NSURL*)url
@@ -1087,7 +1090,7 @@ BOOL isExiting = FALSE;
     return NO;
 }
 
-- (void)close
+- (void)closeWithCompletion:(void (^)(void))completion
 {
     self.currentURL = nil;
     
@@ -1098,9 +1101,9 @@ BOOL isExiting = FALSE;
         isExiting = TRUE;
         lastReducedStatusBarHeight = 0.0;
         if ([weakSelf respondsToSelector:@selector(presentingViewController)]) {
-            [[weakSelf presentingViewController] dismissViewControllerAnimated:YES completion:nil];
+            [[weakSelf presentingViewController] dismissViewControllerAnimated:YES completion:completion];
         } else {
-            [[weakSelf parentViewController] dismissViewControllerAnimated:YES completion:nil];
+            [[weakSelf parentViewController] dismissViewControllerAnimated:YES completion:completion];
         }
     });
 }
